@@ -13,7 +13,7 @@
     /* 侦测数组中新增元素的变化 */
     /* 新增元素也要响应化 如push进来的元素，其实就是获取 新增元素并使用Observer来侦测  */
 
-    // 获取新增元素
+
     ;
     [
       'push',
@@ -28,6 +28,7 @@
       def(arrayMethods, method, function mutator(...args) {
         const result = original.apply(this, args)
         const ob = this.__ob__
+        // 获取新增元素
         let inserted
         switch (method) {
           case 'push':
@@ -37,11 +38,17 @@
           case 'splice':
             inserted = args.slice(2)
         }
+        // 侦测新元素
+        if (inserted) ob.observerArray(inserted)
         op.dep.notify()
         return result
       })
 
     })
+
+
+    /*使用Observer 侦测新元素 */
+
   </SCript>
 </body>
 

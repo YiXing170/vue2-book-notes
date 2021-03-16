@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <script>
+
+    /* 侦测对象变化利用的是Object.defineProperty这个api */
+
+    function defineReactive(data, key, val) {
+      Object.defineProperty(data, key, {
+        enumerable: true,
+        configurable: true,
+        get: function () {
+          return val;
+        },
+        set: function (newval) {
+          if (val === newval) return
+          val = newval;
+        }
+      })
+    }
+
+    /* 在get中收集依赖 在set中触发依赖  依赖是什么？就是关注该响应对象的一个抽象，比如可能是模板，可能是用户写的一个watch，给这个抽象取个好听的名字---Watcher
+    
+    即收集Watcher
+    
+    */
+  </script>
+</body>
+
+</html>
