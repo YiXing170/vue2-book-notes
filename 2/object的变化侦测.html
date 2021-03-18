@@ -96,9 +96,9 @@
     class Watcher {
       constructor(vm, expOrFn, cb) {
         this.vn = vm
-        this.gettter = parsePath(expOrFn)
-        this.cb = cb
-        this.value = this.get()
+        this.gettter = parsePath(expOrFn)  // 函数   去读取data.a.b..c
+        this.cb = cb  // 回调函数
+        this.value = this.get()  // 触发get 把当前依赖放置到Dep中
       }
       get() {
         window.target = this
@@ -125,6 +125,49 @@
         }
         return obj
       }
+    }
+
+
+    /* 前面只是对一个数据属性的侦测，现在要将数据中的所有属性都侦测到，建立一个observer类 ,处理每一个要侦测的对象*/
+    class Observer {
+      constructor(value) {
+        this.value = value
+        if (!Array.isArray(value)) {
+          this.walk(value)
+        }
+      }
+
+      walk(obj) {
+        const keys = Object.keys(obj)
+        for (let i = 0; i < keys.length; i++) {
+          defineReactive(obj, keys[i], obj[keys[i]])
+        }
+
+      }
+    }
+
+
+    /* 特别是对defineReactive再做处理 */
+    function defineReactive(data, key, val) {
+      // 处理属性又是对象的情况，再次进行对象的侦测
+      if (typeof val === 'object') {
+        new Observer(val)
+      }
+      let dep = new Dep()
+      Object.defineProperty(data, key, {
+        enumerable: true,
+        configurable: true,
+        get: function () {
+          dep.depend()
+          return val;
+
+        },
+        set: function (newval) {
+          if (val === newval) return
+          val = newval;
+          dep.notify()
+        }
+      })
     }
   </script>
 </body>
