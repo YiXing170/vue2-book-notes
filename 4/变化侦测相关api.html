@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <script>
+
+    /* 
+    watch的内部原理
+    */
+
+
+    Vue.prototype.$watch = function (expOrFn, cb, options) {
+      const vm = this
+
+
+      options = options || {}
+      const watcher = new Watcher(vm, expOrFn, cb, options)
+      if (options.immediate) {
+        cb.call(vm, watcher.value)
+
+      }
+      return function unwatchFn() {
+        watcher.teardown()
+      }
+    }
+
+    class Watcher {
+      constructor(vm, expOrFn, cb, options) {
+
+        if (options) {
+          this.deep = !!options.deep
+        } else {
+          this.deep = false
+        }
+
+        // 新增
+        if (typeof expOrFn === 'function') {
+          this.getter = expOrFn
+        } else {
+          this.getter = parsePath(expOrFn)
+        }
+        // 新增
+        this.cb = cb
+        this.value = this.get()
+        this.vm = vm
+        // 新增
+        this.deps = []
+        this.depIds = new Set()
+      }
+      // ...
+
+      get() {
+        window.target = this
+        let value = this.getter.call(this.vm, this.vm)
+        // 新增
+        if (this.deep) {
+          traverse(value)
+        }
+        window.target = undefined
+      }
+      // ...
+
+      addDep(dep) {
+        const id = dep.id
+        if (!this.depIds.has(id)) {
+          this.depIds.add(id)
+          this.deps.push(dep)
+          dep.addSub(this)
+        }
+      }
+
+
+      teardown() {
+        let i = this.deps.length
+        while (i--) {
+          this.deps[i].removeSub(this)
+        }
+      }
+    }
+
+
+
+    // dep中收集依赖的逻辑也要改下
+
+    let uid = 0
+    class Dep {
+      constructor() {
+        this.uid = uid
+        this.subs = []
+      }
+
+      // ...
+
+      depend() {
+        if (window.target) {
+          // 之前的写法为 this.addSub(window.target)
+          window.target.addSub(this)
+        }
+      }
+
+
+      // ...
+
+
+    }
+
+    // 
+
+    const seenObjects = new Set()
+    function traverse(val) {
+      _traverse(val, seenObjects)
+      seenObjects.clear()
+    }
+
+
+    function _traverse(val, seen) {
+      let i, keys
+      const isA = Array.isArray(val)
+      if ((!isA && !isObject(val)) || Object.isFrozen(val)) {
+        return
+      }
+      if (val.__ob__) {
+        const depId = val.__ob__.dep.id
+        if (seen.has(depId)) {
+          return
+        }
+        seen.add(depId)
+      }
+      if (isA) {
+        i = val.length
+        while (i--) _traverse(val[i], seen)
+      } else {
+        keys = Object.keys(val)
+        i = keys.length
+        while (i--) _traverse(val[keys[i]], seen)
+      }
+    }
+
+
+    // $set的实现
+    function set(target, key, val) {
+      if (Array.isArray(target) && isValidArrayIndex(key)) {
+        target.length = Math.max(key, target.length)
+        target.splice(key, 1, val)
+        return val
+      }
+
+      if (key in target && !(key in Object.prototype)) {
+        target[key] = val
+        return val
+      }
+    }
+
+  </script>
+</body>
+
+</html>
