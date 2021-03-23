@@ -146,16 +146,63 @@
 
     // $set的实现
     function set(target, key, val) {
+      // 处理数组修改属性
       if (Array.isArray(target) && isValidArrayIndex(key)) {
         target.length = Math.max(key, target.length)
         target.splice(key, 1, val)
         return val
       }
 
+      // 如果key已经存在 直接触发set
       if (key in target && !(key in Object.prototype)) {
         target[key] = val
         return val
       }
+      // 处理对象新增属性
+      const ob = target.__ob__
+      if (target._isValue || (ob && ob.vmCount)) {
+        process.env.NODE_ENV !== 'production' && warn(
+          'Avoid adding reactive properties to a Vue instance or its root $data '
+        )
+        return val
+      }
+      if (!ob) {
+        target[key] = val
+        return val
+      }
+      defineReactive(ob.value, key, val)
+      ob.dep.notify()
+      return val
+
+    }
+
+
+    // vm.$delete的实现
+    function $delete(target, key) {
+      // 处理数组删除属性
+      if (Array.isArray(target) && isValidArrayIndex(key)) {
+
+        target.splice(key, 1)
+        return
+      }
+      const ob = target.__ob__
+      // 不能再在实例和根数据上使用
+      if (target._isValue || (ob && ob.vmCount)) {
+        process.env.NODE_ENV !== 'production' && warn(
+          'Avoid adding reactive properties to a Vue instance or its root $data '
+        )
+        return val
+      }
+
+      // 如果不是数据自身的属性
+      if (!hasOwn(target, key)) {
+        return
+      }
+
+      delete target[key]
+      if (!ob) return
+      ob.dep.notify()
+
     }
 
   </script>
