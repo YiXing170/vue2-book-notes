@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+
+    // patch 的目的是修改节点，对比差异只是patch的一部分
+
+    // 对dom修改要做的是：1创建新的节点 2删除已经废弃的节点 3修改需要更新节点
+
+
+
+    // 1新增节点
+    /* 
+      1 当oldVnode不存在时，就要使用vnode去创建并插入到视图当中 
+
+      2 当oldVnode和vnode完全不是同一节点时，使用vnode去创建，并替换
+
+    */
+
+    //2 删除节点
+
+    /* 
+      就是当一个节点只在oldVnode中存在时，
+
+      或是需要替换掉oldVnode中的节点时，而替换的过程是将新创建的DOM节点插入到旧节点旁边，然后将旧节点删除
+    
+    */
+
+
+    // 3更新节点
+
+    /* 
+      当是两个相同的节点时，要进行更细致的对比，然后再对真实dom更新  
+    
+    */
+
+
+    /* 
+      创建节点
+
+
+      根据vnode 的类型来创建相应的DOM元素，然后插入到视图
+
+      // 只显示  元素节点 注释节点 文本节点
+
+      如果一个vnode有tag属性，那么就是元素节点
+
+      就可调用当前环境下的createElement方法（在浏览器环境下就是document.createElement）生成节点，
+
+      appendChild方法在插入指定的父节点中
+    
+
+
+      删除节点
+
+      值得注意的是removeNode方法做了平台的兼容
+
+
+      更新节点
+
+      1 静态节点直接跳过，不会再发生变化，也就不需要再做更细致的对比
+
+      2 如果新生成的vnode有text（文本）属性，那么不论旧节点的子节点是什么，直接调用setTextContent来将dom中内容更改为vnode中的文本
+
+      3 新vnode无文本属性，只能是元素节点
+        
+        1有children的情况
+          其实也有两种情况 看旧vnode是否有children属性
+          如果有 就要对两个children进行更详细的对比
+          否则 旧vnode只能是空标签或有文本的文本节点，那就先将文本变空（真实操作），再插入到视图中的节点下
+
+        2 无children情况
+
+        以新vnode为准，要做的是删除子节点或文本（真实操作）
+
+    */
+
+    
+
+  </script>
+</body>
+</html>
